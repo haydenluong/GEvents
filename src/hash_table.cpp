@@ -50,6 +50,13 @@ void HashTable::insert(const std::string& keyword, int eventId) {
     auto slot = hash(keyword) % buckets.size();
     for (auto* node = buckets[slot].get(); node; node = node->next.get()) {
         if (node->keyword == keyword) {
+            if (eventId > node->ids.back()) {
+                node->ids.push_back(eventId);
+                return;
+            }
+            if (eventId == node->ids.back()) {
+                return;
+            }
             auto position = std::lower_bound(node->ids.begin(), node->ids.end(), eventId);
             if (position == node->ids.end() || *position != eventId) {
                 node->ids.insert(position, eventId);

@@ -62,6 +62,22 @@ void testHashTable() {
     require(zero.find("code") == std::vector<int>{0}, "Empty insertion changed existing posting");
 }
 
+void testLargePostingList() {
+    HashTable table;
+    std::vector<int> expected;
+    for (int id = 0; id < 100000; ++id) {
+        table.insert("campus", id);
+        table.insert("campus", id);
+        expected.push_back(id);
+    }
+    require(table.find("campus") == expected, "Ascending postings or repeated last ID");
+    table.insert("campus", 50000);
+    table.insert("campus", -1);
+    expected.insert(expected.begin(), -1);
+    require(table.find("campus") == expected, "Out-of-order fallback after ascending postings");
+    require(table.keywordCount() == 1, "Posting growth changed distinct keyword count");
+}
+
 void testRanking() {
     std::vector<Event> events = {
         {3, "Later tech", "2026-11-07", "Hall", "technology", "", {"code", "learn"}},
@@ -109,6 +125,7 @@ void testRanking() {
 int main() {
     try {
         testHashTable();
+        testLargePostingList();
         testRanking();
         std::cout << "Hash table and ranking tests passed\n";
     } catch (const std::exception& error) {
