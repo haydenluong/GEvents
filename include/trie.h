@@ -14,6 +14,8 @@ public:
     std::vector<int> find(const std::string& keyword) const override;
     std::size_t memoryBytes() const override;
 
+    std::vector<std::string> autocomplete(const std::string& prefix, int limit) const;
+
 private:
     struct Child {
         char letter;
@@ -30,4 +32,6 @@ private:
     int childOf(int node, char letter) const;
     int addChild(int node, char letter);
     int nodeFor(const std::string& keyword) const;
+    void collectWords(int node, std::string& word, std::size_t limit,
+                      std::vector<std::string>& matches) const;
 };
