@@ -1,5 +1,6 @@
 import sys
 import random
+import os
 from datetime import date, timedelta
 
 
@@ -50,26 +51,25 @@ categories = {
 
 locations = ["Student Union", "Library", "Recreation Center", "Campus Green", "Auditorium"]
 
-print("Count:", count)
-print("Seed:", seed)
-print("Output:", output)
-
 random.seed(seed)
 
-for event_id in range(count):
-    category = random.choice(list(categories))
-    location = random.choice(locations)
-    keyword_count = random.randint(3, 8)
-    keywords = random.sample(categories[category], keyword_count)
-    event_date = date(2026, 1, 1) + timedelta(days=random.randint(0, 364))
-    title = category.capitalize() + " Event " + str(event_id)
-    description = "Join a campus event about " + keywords[0] + "."
+folder = os.path.dirname(output)
+if folder != "":
+    os.makedirs(folder, exist_ok=True)
 
-    print()
-    print("ID:", event_id)
-    print("Title:", title)
-    print("Date:", event_date)
-    print("Location:", location)
-    print("Category:", category)
-    print("Description:", description)
-    print("Keywords:", ";".join(keywords))
+with open(output, "w", encoding="utf-8", newline="") as file:
+    file.write("id\ttitle\tdate\tlocation\tcategory\tdescription\tkeywords\n")
+
+    for event_id in range(count):
+        category = random.choice(list(categories))
+        location = random.choice(locations)
+        keyword_count = random.randint(3, 8)
+        keywords = random.sample(categories[category], keyword_count)
+        event_date = date(2026, 1, 1) + timedelta(days=random.randint(0, 364))
+        title = category.capitalize() + " Event " + str(event_id)
+        description = "Join a campus event about " + keywords[0] + "."
+
+        fields = [str(event_id), title, str(event_date), location, category, description, ";".join(keywords)]
+        file.write("\t".join(fields) + "\n")
+
+print("Generated", count, "events in", output)
