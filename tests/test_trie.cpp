@@ -86,11 +86,30 @@ void testMemoryAndScaling() {
     require(trie.memoryBytes() >= 100000 * sizeof(int), "Posting memory missing");
 }
 
+void testAutocomplete() {
+    using Words = std::vector<std::string>;
+    Trie trie;
+    loadEvents(trie, sampleEvents());
+    require(trie.autocomplete("hack", 10) == Words({"hack", "hackathon", "hacking"}), "Prefix that is a keyword");
+    require(trie.autocomplete("co", 10) == Words({"code", "coding", "coffee"}), "Alphabetical order");
+    require(trie.autocomplete("co", 2) == Words({"code", "coding"}), "Limit not respected");
+    require(trie.autocomplete("hack", 1) == Words{"hack"}, "Limit of one");
+    require(trie.autocomplete("pizza", 10) == Words{"pizza"}, "Full keyword as prefix");
+    require(trie.autocomplete("pizzas", 10).empty(), "Longer prefix matched");
+    require(trie.autocomplete("x", 10).empty(), "Unknown prefix matched");
+    require(trie.autocomplete("hack", 0).empty(), "Zero limit returned words");
+    require(trie.autocomplete("hack", -3).empty(), "Negative limit returned words");
+    require(trie.autocomplete("", 3) == Words({"code", "coding", "coffee"}), "Empty prefix start");
+    require(trie.autocomplete("", 100).size() == 11, "Empty prefix should list every keyword");
+    require(Trie().autocomplete("", 5).empty(), "Empty trie returned words");
+}
+
 int main() {
     try {
         testInsertAndFind();
         testMatchesHashTable();
         testMemoryAndScaling();
+        testAutocomplete();
         std::cout << "Trie tests passed\n";
     } catch (const std::exception& error) {
         std::cerr << error.what() << '\n';
