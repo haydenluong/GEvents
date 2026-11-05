@@ -16,6 +16,15 @@ else()
     target_compile_options(gevents PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
+add_executable(gevents_benchmark bench/main.cpp src/benchmark.cpp src/event_loader.cpp
+               src/trie.cpp src/hash_table.cpp)
+target_include_directories(gevents_benchmark PRIVATE ${CMAKE_SOURCE_DIR}/include)
+if(MSVC)
+    target_compile_options(gevents_benchmark PRIVATE /W4)
+else()
+    target_compile_options(gevents_benchmark PRIVATE -Wall -Wextra -Wpedantic)
+endif()
+
 include(CTest)
 if(BUILD_TESTING)
     add_executable(raymond_tests tests/test_raymond.cpp src/hash_table.cpp src/ranking.cpp)
