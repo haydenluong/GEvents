@@ -51,6 +51,38 @@ std::size_t Trie::memoryBytes() const {
     return total;
 }
 
+std::vector<std::string> Trie::autocomplete(const std::string& prefix, int limit) const {
+    std::vector<std::string> matches;
+    if (limit <= 0) {
+        return matches;
+    }
+
+    int start = prefix.empty() ? 0 : nodeFor(prefix);
+    if (start < 0) {
+        return matches;
+    }
+
+    std::string word = prefix;
+    collectWords(start, word, static_cast<std::size_t>(limit), matches);
+    return matches;
+}
+
+void Trie::collectWords(int node, std::string& word, std::size_t limit,
+                        std::vector<std::string>& matches) const {
+    if (!nodes[node].eventIds.empty()) {
+        matches.push_back(word);
+    }
+
+    for (const Child& child : nodes[node].children) {
+        if (matches.size() >= limit) {
+            return;
+        }
+        word.push_back(child.letter);
+        collectWords(child.node, word, limit, matches);
+        word.pop_back();
+    }
+}
+
 int Trie::childOf(int node, char letter) const {
     const std::vector<Child>& children = nodes[node].children;
     auto slot = findSlot(children, letter);
