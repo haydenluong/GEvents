@@ -49,8 +49,17 @@ void testHashTable() {
     copy.clear();
     require(table.find("a").size() == 3, "Find exposed stored posting");
     HashTable zero(0);
+    zero.insert("code", 0);
+    require(zero.find("code") == std::vector<int>{0}, "Zero initial capacity");
+    const auto beforeEmptyMemory = zero.memoryBytes();
+    const auto beforeEmptyBuckets = zero.bucketCount();
     zero.insert("", 0);
-    require(zero.find("") == std::vector<int>{0}, "Zero capacity or empty key");
+    zero.insert("", 1);
+    require(zero.find("").empty(), "Empty keyword should not be indexed");
+    require(zero.keywordCount() == 1, "Empty keyword changed keyword count");
+    require(zero.memoryBytes() == beforeEmptyMemory, "Empty keyword allocated storage");
+    require(zero.bucketCount() == beforeEmptyBuckets, "Empty keyword caused resizing");
+    require(zero.find("code") == std::vector<int>{0}, "Empty insertion changed existing posting");
 }
 
 void testRanking() {

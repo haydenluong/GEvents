@@ -44,6 +44,9 @@ void HashTable::resize() {
 }
 
 void HashTable::insert(const std::string& keyword, int eventId) {
+    if (keyword.empty()) {
+        return;
+    }
     auto slot = hash(keyword) % buckets.size();
     for (auto* node = buckets[slot].get(); node; node = node->next.get()) {
         if (node->keyword == keyword) {

@@ -82,7 +82,7 @@ The planned Trie also provides `autocomplete(prefix, limit)`, which returns up t
 
 ## Hash Table
 
-`HashTable` in `include/hash_table.h` implements `Index` using FNV-1a hashing and separate chaining. It starts with 16 buckets by default and doubles the bucket count before a new distinct keyword would exceed a 0.75 load factor. Rehashing relinks existing nodes. Posting lists stay sorted and duplicate IDs are ignored, including when callers insert IDs out of order. Keywords are case-sensitive; query parsing should normalize them to lowercase before indexing or searching.
+`HashTable` in `include/hash_table.h` implements `Index` using FNV-1a hashing and separate chaining. It starts with 16 buckets by default and doubles the bucket count before a new distinct keyword would exceed a 0.75 load factor. Rehashing relinks existing nodes. Posting lists stay sorted and duplicate IDs are ignored, including when callers insert IDs out of order. Empty keywords are ignored, matching the Trie. Keywords are case-sensitive; query parsing should normalize them to lowercase before indexing or searching.
 
 `memoryBytes()` counts the allocated bucket array, chain nodes, heap keyword storage, and posting-list capacity. It excludes the table object itself, event records, allocator metadata, and temporary vectors returned by `find`. Heap keyword accounting detects whether character storage is inside the string object; verify that convention on the compiler used for the final comparison. Both indexes must use the same accounting boundaries.
 
