@@ -25,6 +25,18 @@ else()
     target_compile_options(gevents_benchmark PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
+add_executable(gevents_backend ui/search_backend.cpp src/benchmark.cpp src/event_loader.cpp
+               src/trie.cpp src/hash_table.cpp src/query.cpp src/ranking.cpp)
+target_include_directories(gevents_backend PRIVATE ${CMAKE_SOURCE_DIR}/include)
+if(MSVC)
+    target_compile_options(gevents_backend PRIVATE /W4)
+else()
+    target_compile_options(gevents_backend PRIVATE -Wall -Wextra -Wpedantic)
+endif()
+if(MINGW)
+    target_link_options(gevents_backend PRIVATE -static-libstdc++ -static-libgcc)
+endif()
+
 include(CTest)
 if(BUILD_TESTING)
     add_executable(raymond_tests tests/test_raymond.cpp src/hash_table.cpp src/ranking.cpp)
