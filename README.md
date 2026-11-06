@@ -6,7 +6,7 @@ Group 75: Khang "Hayden" Luong, Raymond Shi, Phuc Nguyen
 
 ## Current Status
 
-The custom hash table, category/date filters, and relevance ranking are implemented as C++ components with automated tests. The executable currently prints `GEvents`; the console menu, dataset loader/generator, Trie, and benchmark harness are not implemented in this checkout yet.
+The console menu connects the TSV dataset loader, custom hash table and Trie, multi-keyword search, category/date filters, relevance ranking, prefix autocomplete, and benchmark harness. Automated tests cover the indexes, ranking, and console integration.
 
 ## Building
 
@@ -41,14 +41,14 @@ ctest --test-dir build -C Debug --output-on-failure
 | :--- | :--- |
 | `include/` | Headers |
 | `src/` | Source files |
-| `tests/` | Hash table, filter, and ranking tests |
+| `tests/` | Index, filter, ranking, and console tests |
 | `docs/` | Algorithms report draft |
-| `tools/` | Planned Python dataset generator |
+| `tools/` | Python dataset generator |
 | `data/` | Generated datasets (not committed) |
 
 ## Dataset
 
-The full dataset will be generated locally and excluded from Git. The generator is not present yet. Once implemented, the planned command uses a fixed seed so everyone works with the same file:
+Generate the full dataset locally with a fixed seed; generated data is excluded from Git:
 
 ```
 python tools/generate_events.py --count 100000 --seed 42 --out data/events.tsv
@@ -78,7 +78,7 @@ Both structures derive from `Index` in `include/index.h`:
 - `find(keyword)` returns the event IDs for a keyword in ascending order with no duplicates, or an empty vector if the keyword is unknown.
 - `memoryBytes()` counts every byte the structure allocates itself (nodes, bucket arrays, and the capacity of each ID vector), not the event records.
 
-The planned Trie also provides `autocomplete(prefix, limit)`, which returns up to `limit` keywords starting with `prefix` in alphabetical order.
+The Trie also provides `autocomplete(prefix, limit)`, which returns up to `limit` keywords starting with `prefix` in alphabetical order.
 
 ## Hash Table
 
@@ -125,4 +125,24 @@ options.referenceDate = "2026-11-05";
 auto ranked = rankEvents(events, {"code", "learn"}, options);
 ```
 
-For indexed search, the query parser should call `find` for each keyword, intersect the sorted posting lists, resolve those IDs to event records, and pass those candidate records to `rankEvents`. Event IDs are identifiers, not necessarily vector offsets. The example passes all events to show the ranking API independently of the pending query parser.
+For indexed search, the query parser calls `find` for each keyword and intersects the sorted posting lists. The menu resolves those IDs to event records and passes those candidate records to `rankEvents`. Event IDs are identifiers, not necessarily vector offsets. The example passes all events to show the ranking API independently of the query parser.
+
+## Console Menu
+
+Run from the repository root so the default dataset path resolves correctly:
+
+```
+python3 tools/generate_events.py --count 100000 --seed 42 --out data/events.tsv
+./build/gevents
+```
+
+You can also pass a dataset path: `./build/gevents /path/to/events.tsv`.
+
+1. **Load dataset** loads a TSV file into both indexes. A failed reload keeps the previous dataset. Duplicate IDs and invalid event dates are rejected.
+2. **Search events** accepts space-separated keywords, allowed categories, preferred interest categories, and inclusive date bounds. Blank keywords browse all events; blank filters impose no restriction. Keywords and category input are converted to lowercase. Results show scores and event details, ten at a time. Enter `y` to see the next page. The date bonus uses the computer's current local date.
+3. **Autocomplete** shows up to ten keywords for a prefix using the Trie, regardless of the active search index.
+4. **Switch index** toggles exact keyword search between the hash table (default) and Trie.
+5. **Run benchmarks** compares both structures at 10k, 25k, 50k, and 100k events when the loaded file is large enough, averaging three runs. It can optionally save a CSV. At least 10,000 events are required. Use a Release build for timing measurements: `cmake -S . -B build -DCMAKE_BUILD_TYPE=Release` followed by `cmake --build build --config Release`.
+0. **Exit** closes the application. End-of-input also exits cleanly.
+
+Python 3 is required for the generator and console integration tests. CMake registers the console test when it finds a Python interpreter. It can also be run directly with `python3 tests/test_console.py ./build/gevents`.
